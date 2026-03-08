@@ -72,6 +72,16 @@ at runtime so secrets never live in the file:
 
 ## Agent usage
 
+An **agent skill** is available for one-line install into any supported agent:
+
+```bash
+npx skills add justestif/qry -g -y
+```
+
+Browse skills at [skills.sh](https://skills.sh).
+
+---
+
 Run `qry --agent-info` (or `-A`) to get a JSON description of the tool and your current
 configuration — useful for agents to orient themselves before making search calls:
 

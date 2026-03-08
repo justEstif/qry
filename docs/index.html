@@ -464,6 +464,24 @@
         <code>qry</code> is designed to be composed. Output is always JSON — pipe it directly to agents or <code>jq</code>.
       </p>
 
+      <p>
+        An agent skill is available for one-line install into any supported agent:
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot-red"></span>
+          <span class="dot-yellow"></span>
+          <span class="dot-green"></span>
+        </div>
+        <button class="copy-btn" data-copy="npx skills add justestif/qry -g -y">copy</button>
+        <pre><span class="prompt">$</span> <span class="cmd">npx skills add</span> justestif/qry <span class="string">-g -y</span></pre>
+      </div>
+
+      <p style="margin-block-start: 1rem;">Browse and discover skills at <a href="https://skills.sh" target="_blank" rel="noopener">skills.sh ↗</a>.</p>
+
+      <hr style="margin-block: 2rem; border: none; border-block-start: 1px solid var(--graphical-fg);">
+
       <p>Run <code>qry --agent-info</code> (or <code>-A</code>) to get a JSON description of the tool and your current configuration — useful for agents to orient themselves before making search calls:</p>
 
       <div class="terminal">
