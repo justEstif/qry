@@ -29,6 +29,7 @@ go build -o bin/qry-adapter-mock ./adapters/mock/
 go build -o bin/qry-adapter-brave-api ./adapters/brave-api/
 go build -o bin/qry-adapter-ddg-scrape ./adapters/ddg-scrape/
 go build -o bin/qry-adapter-brave-scrape ./adapters/brave-scrape/
+go build -o bin/qry-adapter-exa ./adapters/exa/
 """
 
 [tasks.test-e2e]
