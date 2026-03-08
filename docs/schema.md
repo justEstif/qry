@@ -56,6 +56,19 @@ The config file controls the core runtime behavior and registers adapters.
   # No config block — this adapter needs no credentials
 ```
 
+### ENV variable interpolation
+
+Adapter config values support `${VAR}` syntax. When qry loads the config, it expands
+these references from the environment — so secrets never need to live in the file itself:
+
+```toml
+[adapters.brave-api.config]
+  api_key = "${BRAVE_API_KEY}"
+```
+
+`qry --agent-info` shows the **template string** (`"${BRAVE_API_KEY}"`), not the resolved
+value — so agents can see which env vars are required without exposing secrets.
+
 ### Field Reference
 
 | Field | Type | Required | Description |

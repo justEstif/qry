@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>qry — terminal-native web search CLI</title>
+  <link rel="stylesheet" href="https://unpkg.com/missing.css@1.2.0">
+  <style>
+    :root {
+      --accent: #7c6af7;
+      --muted-accent: #a89ef9;
+      --line-length: 72ch;
+    }
+
+    body {
+      padding-block-end: 4rem;
+    }
+
+    /* ── Nav ── */
+    header.site-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 2rem;
+      border-block-end: 1px solid var(--graphical-fg);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+    }
+
+    header.site-nav .logo {
+      font-weight: 700;
+      font-size: 1.2rem;
+      text-decoration: none;
+      color: var(--fg);
+      font-family: var(--mono-font);
+    }
+
+    header.site-nav nav {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    header.site-nav nav a {
+      text-decoration: none;
+      color: var(--muted-fg);
+      font-size: 0.9rem;
+    }
+
+    header.site-nav nav a:hover {
+      color: var(--fg);
+    }
+
+    header.site-nav nav a.github-link {
+      color: var(--accent);
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: var(--line-length);
+      margin-inline: auto;
+      padding-inline: 1.5rem;
+    }
+
+    section {
+      padding-block: 3.5rem;
+      border-block-end: 1px solid var(--graphical-fg);
+    }
+
+    section:last-of-type {
+      border-block-end: none;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding-block-start: 4rem;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-family: var(--mono-font);
+      font-size: 3rem;
+      margin-block-end: 0.25rem;
+    }
+
+    .hero .tagline {
+      color: var(--muted-fg);
+      font-size: 1.1rem;
+      margin-block-end: 2.5rem;
+    }
+
+    .hero .terminal {
+      text-align: left;
+      margin-inline: auto;
+    }
+
+    .anchor-nav {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-block-start: 2.5rem;
+    }
+
+    .anchor-nav a {
+      text-decoration: none;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 0.3rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+    }
+
+    .anchor-nav a:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    /* ── Scroll offset for sticky nav ── */
+    section[id] {
+      scroll-margin-top: 60px;
+    }
+
+    /* ── Kill browser :target highlight ── */
+    section:target {
+      outline: none;
+    }
+
+    /* ── Terminal block ── */
+    .terminal {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: var(--mono-font);
+      font-size: 0.88rem;
+      position: relative;
+    }
+
+    .terminal-bar {
+      background: #2a2a3e;
+      padding: 0.5rem 1rem;
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    /* ── Copy button ── */
+    .copy-btn {
+      position: absolute;
+      top: 0.4rem;
+      right: 0.75rem;
+      background: transparent;
+      border: 1px solid #4a4a6a;
+      color: #a0aec0;
+      border-radius: 4px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.75rem;
+      font-family: var(--mono-font);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .copy-btn:hover {
+      background: #2a2a3e;
+      color: #e2e8f0;
+    }
+
+    .copy-btn.copied {
+      color: #68d391;
+      border-color: #68d391;
+    }
+
+    .terminal-bar span {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .terminal-bar .dot-red    { background: #ff5f57; }
+    .terminal-bar .dot-yellow { background: #febc2e; }
+    .terminal-bar .dot-green  { background: #28c840; }
+
+    .terminal pre {
+      margin: 0;
+      padding: 1.25rem 1.5rem;
+      background: transparent;
+      color: #e2e8f0;
+      overflow-x: auto;
+      border: none;
+    }
+
+    .terminal .prompt { color: #7c6af7; }
+    .terminal .cmd    { color: #e2e8f0; }
+    .terminal .string { color: #68d391; }
+    .terminal .key    { color: #76e4f7; }
+    .terminal .url    { color: #fbb6ce; }
+    .terminal .punct  { color: #a0aec0; }
+
+    /* ── Tabs ── */
+    .tab-group {
+      border: 1px solid var(--graphical-fg);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .tab-buttons {
+      display: flex;
+      background: var(--box-bg, var(--interactive-bg));
+      border-block-end: 1px solid var(--graphical-fg);
+    }
+
+    .tab-btn {
+      padding: 0.5rem 1.25rem;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: var(--muted-fg);
+      border-block-end: 2px solid transparent;
+      margin-block-end: -1px;
+    }
+
+    .tab-btn:hover { color: var(--fg); }
+
+    .tab-btn.active {
+      color: var(--accent);
+      border-block-end-color: var(--accent);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .tab-panel pre {
+      margin: 0;
+      border: none;
+      border-radius: 0;
+    }
+
+    /* ── Adapters table ── */
+    table {
+      width: 100%;
+    }
+
+    td code, th code {
+      font-size: 0.82rem;
+    }
+
+    .badge {
+      font-size: 0.8rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+    }
+
+    .badge-required {
+      background: color-mix(in srgb, var(--bad-bg, #fed7d7) 60%, transparent);
+      color: var(--bad-fg, #c53030);
+    }
+
+    .badge-none {
+      background: color-mix(in srgb, var(--ok-bg, #c6f6d5) 60%, transparent);
+      color: var(--ok-fg, #276749);
+    }
+
+    /* ── Section headings ── */
+    h2.section-title {
+      font-family: var(--mono-font);
+      font-size: 1.4rem;
+      margin-block-end: 0.25rem;
+    }
+
+    .section-sub {
+      color: var(--muted-fg);
+      margin-block-end: 1.75rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding-block: 2rem;
+      color: var(--muted-fg);
+      font-size: 0.85rem;
+      border-block-start: 1px solid var(--graphical-fg);
+      margin-block-start: 2rem;
+    }
+
+    footer a { color: var(--muted-fg); }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <header class="site-nav">
+    <a class="logo" href="#">qry</a>
+    <nav>
+      <a href="#install">Install</a>
+      <a href="#adapters">Adapters</a>
+      <a href="#configure">Configure</a>
+      <a href="#agent-usage">Agent Usage</a>
+      <a href="https://github.com/justestif/qry" class="github-link" target="_blank" rel="noopener">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1>qry</h1>
+      <p class="tagline">A terminal-native, agent-first web search CLI.<br>Routes queries through swappable adapter binaries and always outputs JSON.</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot-red"></span>
+          <span class="dot-yellow"></span>
+          <span class="dot-green"></span>
+        </div>
+        <pre><span class="prompt">$</span> <span class="cmd">qry</span> <span class="string">"what is the latest version of numpy"</span>
+
+<span class="punct">[</span>
+  <span class="punct">{</span>
+    <span class="key">"title"</span><span class="punct">:</span>   <span class="string">"NumPy 2.0 Release Notes"</span><span class="punct">,</span>
+    <span class="key">"url"</span><span class="punct">:</span>     <span class="url">"https://numpy.org/doc/stable/release/2.0.0-notes.html"</span><span class="punct">,</span>
+    <span class="key">"snippet"</span><span class="punct">:</span> <span class="string">"NumPy 2.0.0 is the first major release since 2006..."</span>
+  <span class="punct">}</span>
+<span class="punct">]</span></pre>
+      </div>
+
+      <nav class="anchor-nav">
+        <a href="#install">Install</a>
+        <a href="#adapters">Adapters</a>
+        <a href="#configure">Configure</a>
+        <a href="#agent-usage">Agent Usage</a>
+      </nav>
+    </section>
+
+    <!-- Install -->
+    <section id="install">
+      <h2 class="section-title">Install</h2>
+      <p class="section-sub">Requires <a href="https://mise.jdx.dev" target="_blank" rel="noopener">mise</a>.</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot-red"></span>
+          <span class="dot-yellow"></span>
+          <span class="dot-green"></span>
+        </div>
+        <button class="copy-btn" data-copy="mise use -g go:github.com/justestif/qry@latest&#10;mise reshim">copy</button>
+        <pre><span class="prompt">$</span> <span class="cmd">mise use -g</span> go:github.com/justestif/qry@latest
+<span class="prompt">$</span> <span class="cmd">mise reshim</span></pre>
+      </div>
+    </section>
+
+    <!-- Adapters -->
+    <section id="adapters">
+      <h2 class="section-title">Adapters</h2>
+      <p class="section-sub">Adapters are separate binaries that do the actual searching. Install the ones you want.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Adapter</th>
+            <th>Source</th>
+            <th>API Key</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>qry-adapter-brave-api</code></td>
+            <td>Brave Search API</td>
+            <td><span class="badge badge-required">Required</span></td>
+          </tr>
+          <tr>
+            <td><code>qry-adapter-brave-scrape</code></td>
+            <td>Brave Search (scraping)</td>
+            <td><span class="badge badge-none">None</span></td>
+          </tr>
+          <tr>
+            <td><code>qry-adapter-ddg-scrape</code></td>
+            <td>DuckDuckGo Lite (scraping)</td>
+            <td><span class="badge badge-none">None</span></td>
+          </tr>
+          <tr>
+            <td><code>qry-adapter-exa</code></td>
+            <td>Exa AI (via MCP)</td>
+            <td><span class="badge badge-none">None</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-block-start: 1.5rem;">Install an adapter the same way:</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot-red"></span>
+          <span class="dot-yellow"></span>
+          <span class="dot-green"></span>
+        </div>
+        <button class="copy-btn" data-copy="mise use -g go:github.com/justestif/qry/adapters/ddg-scrape@latest&#10;mise reshim">copy</button>
+        <pre><span class="prompt">$</span> <span class="cmd">mise use -g</span> go:github.com/justestif/qry/adapters/ddg-scrape@latest
+<span class="prompt">$</span> <span class="cmd">mise reshim</span></pre>
+      </div>
+
+      <div class="info box" style="margin-block-start: 1.5rem;">
+        Adapters are completely decoupled from <code>qry</code> — they can be written in any language
+        and swapped without changing core. See
+        <a href="https://github.com/justestif/qry/blob/main/docs/adapters.md" target="_blank" rel="noopener">adapters.md ↗</a>
+        to build your own.
+      </div>
+    </section>
+
+    <!-- Configure -->
+    <section id="configure">
+      <h2 class="section-title">Configure</h2>
+      <p class="section-sub">Create <code>~/.config/qry/config.toml</code>. Config is read fresh on every invocation — no restart needed.</p>
+
+      <div class="tab-group">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="tab-defaults">defaults</button>
+          <button class="tab-btn" data-tab="tab-routing">routing</button>
+          <button class="tab-btn" data-tab="tab-adapters">adapters</button>
+        </div>
+
+        <div id="tab-defaults" class="tab-panel active">
+          <pre><code>[defaults]
+  num     = 10    # results to return
+  timeout = "5s"  # per-adapter timeout</code></pre>
+        </div>
+
+        <div id="tab-routing" class="tab-panel">
+          <pre><code>[routing]
+  # "first"  — try adapters in order, stop at first success
+  # "merge"  — query all concurrently, deduplicate by URL
+  mode     = "first"
+  pool     = ["brave-api", "ddg-scrape"]
+  fallback = ["brave-scrape"]  # used only in "first" mode</code></pre>
+        </div>
+
+        <div id="tab-adapters" class="tab-panel">
+          <pre><code>[adapters.brave-api]
+  bin     = "~/.local/share/mise/shims/qry-adapter-brave-api"
+  timeout = "5s"
+
+  [adapters.brave-api.config]
+    api_key = "${BRAVE_API_KEY}"  # expanded from env at runtime
+
+[adapters.ddg-scrape]
+  bin = "~/.local/share/mise/shims/qry-adapter-ddg-scrape"</code></pre>
+        </div>
+      </div>
+
+      <div class="ok box" style="margin-block-start: 1.5rem;">
+        Use <code>${VAR}</code> syntax in adapter config values — <code>qry</code> expands them
+        from the environment at runtime so secrets never live in the file.
+      </div>
+    </section>
+
+    <!-- Agent Usage -->
+    <section id="agent-usage">
+      <h2 class="section-title">Agent Usage</h2>
+      <p class="section-sub">
+        <code>qry</code> is designed to be composed. Output is always JSON — pipe it directly to agents or <code>jq</code>.
+      </p>
+
+      <p>Run <code>qry --agent-info</code> (or <code>-A</code>) to get a JSON description of the tool and your current configuration — useful for agents to orient themselves before making search calls:</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot-red"></span>
+          <span class="dot-yellow"></span>
+          <span class="dot-green"></span>
+        </div>
+        <button class="copy-btn" data-copy="qry --agent-info">copy</button>
+        <pre><span class="prompt">$</span> <span class="cmd">qry --agent-info</span></pre>
+      </div>
+
+      <p style="margin-block-start: 1.5rem;">The output includes the tool description, available flags, routing mode explanations, and each configured adapter with its binary path and availability status.</p>
+
+      <div class="info box">
+        Adapter config maps show <code>${VAR}</code> template strings rather than resolved values,
+        so secrets are never exposed to agents.
+      </div>
+
+      <h3 style="margin-block-start: 2rem;">Routing modes</h3>
+
+      <div style="display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; margin-block-start: 0.5rem;">
+        <div class="box">
+          <strong class="titlebar">first</strong>
+          <p>Tries adapters in order, returns on first success. Fast — typically only one adapter is invoked per query. Good for most use cases.</p>
+        </div>
+        <div class="box">
+          <strong class="titlebar">merge</strong>
+          <p>Queries all adapters concurrently, deduplicates results by URL. Broader coverage. Partial failure is not an error — results from successful adapters are returned with warnings.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Docs links -->
+    <section id="docs">
+      <h2 class="section-title">Reference</h2>
+      <p class="section-sub">Full documentation lives on GitHub.</p>
+
+      <div style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));">
+        <a class="box" href="https://github.com/justestif/qry/blob/main/docs/adapters.md" target="_blank" rel="noopener" style="text-decoration: none; color: inherit;">
+          <strong>adapters.md ↗</strong>
+          <p style="margin:0; color: var(--muted-fg); font-size: 0.9rem;">Adapter contract, protocol, and how to build your own.</p>
+        </a>
+        <a class="box" href="https://github.com/justestif/qry/blob/main/docs/schema.md" target="_blank" rel="noopener" style="text-decoration: none; color: inherit;">
+          <strong>schema.md ↗</strong>
+          <p style="margin:0; color: var(--muted-fg); font-size: 0.9rem;">Config file format, request/response shapes, error codes.</p>
+        </a>
+        <a class="box" href="https://github.com/justestif/qry/blob/main/docs/architecture.md" target="_blank" rel="noopener" style="text-decoration: none; color: inherit;">
+          <strong>architecture.md ↗</strong>
+          <p style="margin:0; color: var(--muted-fg); font-size: 0.9rem;">How qry works internally — components, routing, data flow.</p>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>
+      <strong>qry</strong> &nbsp;·&nbsp;
+      MIT License &nbsp;·&nbsp;
+      <a href="https://github.com/justestif/qry" target="_blank" rel="noopener">GitHub ↗</a>
+    </p>
+  </footer>
+
+  <script>
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const group = btn.closest('.tab-group');
+        group.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        group.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        group.querySelector('#' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Copy buttons
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.copy).then(() => {
+          btn.textContent = 'copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = 'copy';
+            btn.classList.remove('copied');
+          }, 2000);
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>

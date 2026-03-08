@@ -34,6 +34,37 @@ type Config struct {
 	Adapters map[string]Adapter `mapstructure:"adapters"`
 }
 
+// ExpandEnv replaces ${VAR} references in adapter config map values with their
+// environment variable values. Only the [adapters.<name>.config] map is expanded —
+// binary paths and timeouts are not touched. Call this after unmarshalling.
+func (c *Config) ExpandEnv() {
+	for name, adapter := range c.Adapters {
+		if adapter.Config == nil {
+			continue
+		}
+		expanded := make(map[string]string, len(adapter.Config))
+		for k, v := range adapter.Config {
+			expanded[k] = os.ExpandEnv(v)
+		}
+		adapter.Config = expanded
+		c.Adapters[name] = adapter
+	}
+}
+
+// ApplyDefaults fills in zero-value fields with sensible defaults.
+// Call this after unmarshalling and applying any CLI overrides, before Validate.
+func (c *Config) ApplyDefaults() {
+	if c.Routing.Mode == "" {
+		c.Routing.Mode = "first"
+	}
+	if c.Defaults.Num == 0 {
+		c.Defaults.Num = 10
+	}
+	if c.Defaults.Timeout == 0 {
+		c.Defaults.Timeout = 5 * time.Second
+	}
+}
+
 // Validate checks the config for required fields and consistency.
 func (c *Config) Validate() error {
 	if len(c.Routing.Pool) == 0 {

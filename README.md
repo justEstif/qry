@@ -43,6 +43,14 @@ mise reshim
 
 Create `~/.config/qry/config.toml`:
 
+Use `${VAR}` syntax in adapter config values — qry expands them from the environment
+at runtime so secrets never live in the file:
+
+```toml
+[adapters.brave-api.config]
+  api_key = "${BRAVE_API_KEY}"
+```
+
 ```toml
 [defaults]
   num     = 10
@@ -59,6 +67,19 @@ Create `~/.config/qry/config.toml`:
 [adapters.brave-scrape]
   bin = "~/.local/share/mise/shims/qry-adapter-brave-scrape"
 ```
+
+## Agent usage
+
+Run `qry --agent-info` (or `-A`) to get a JSON description of the tool and your current
+configuration — useful for agents to orient themselves before making search calls:
+
+```bash
+qry --agent-info
+```
+
+The output includes the tool description, available flags, routing mode explanations,
+and each configured adapter with its binary path and availability status. Adapter config
+maps show `${VAR}` template strings rather than resolved values, so secrets are never exposed.
 
 ## Routing modes
 

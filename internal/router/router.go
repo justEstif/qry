@@ -55,7 +55,7 @@ func (r *Router) runFirst(ctx context.Context) (result.FirstOutput, error) {
 		return results, nil
 	}
 
-	return nil, &AllAdaptersFailedError{
+	return nil, &allAdaptersFailedError{
 		Mode:     "first",
 		Attempts: attempts,
 	}
@@ -106,7 +106,7 @@ func (r *Router) runMerge(ctx context.Context) (result.MergeOutput, error) {
 	}
 
 	if len(combined) == 0 && len(attempts) > 0 {
-		return result.MergeOutput{}, &AllAdaptersFailedError{
+		return result.MergeOutput{}, &allAdaptersFailedError{
 			Mode:     "merge",
 			Attempts: attempts,
 		}
@@ -118,13 +118,21 @@ func (r *Router) runMerge(ctx context.Context) (result.MergeOutput, error) {
 	}, nil
 }
 
-// AllAdaptersFailedError is returned when every adapter in the chain has failed.
-type AllAdaptersFailedError struct {
+// FailureReporter is implemented by errors that carry a structured failure payload.
+// cmd callers use errors.As(err, new(FailureReporter)) instead of type-asserting
+// the concrete error type, keeping the router's internals encapsulated.
+type FailureReporter interface {
+	error
+	FailureOutput() result.FailureOutput
+}
+
+// allAdaptersFailedError is returned when every adapter in the chain has failed.
+type allAdaptersFailedError struct {
 	Mode     string
 	Attempts []result.Attempt
 }
 
-func (e *AllAdaptersFailedError) Error() string {
+func (e *allAdaptersFailedError) Error() string {
 	if len(e.Attempts) == 0 {
 		return "all adapters failed"
 	}
@@ -133,7 +141,7 @@ func (e *AllAdaptersFailedError) Error() string {
 }
 
 // FailureOutput converts the error into the structured stderr payload.
-func (e *AllAdaptersFailedError) FailureOutput() result.FailureOutput {
+func (e *allAdaptersFailedError) FailureOutput() result.FailureOutput {
 	return result.FailureOutput{
 		Error:    "all_adapters_failed",
 		Message:  e.Error(),
