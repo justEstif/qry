@@ -339,17 +339,28 @@
     <!-- Install -->
     <section id="install">
       <h2 class="section-title">Install</h2>
-      <p class="section-sub">Requires <a href="https://mise.jdx.dev" target="_blank" rel="noopener">mise</a>.</p>
+      <p class="section-sub">Pick your preferred package manager.</p>
 
-      <div class="terminal">
-        <div class="terminal-bar">
-          <span class="dot-red"></span>
-          <span class="dot-yellow"></span>
-          <span class="dot-green"></span>
+      <div class="tab-group">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="tab-install-npm">npm</button>
+          <button class="tab-btn" data-tab="tab-install-mise">mise</button>
         </div>
-        <button class="copy-btn" data-copy="mise use -g go:github.com/justestif/qry@latest&#10;mise reshim">copy</button>
-        <pre><span class="prompt">$</span> <span class="cmd">mise use -g</span> go:github.com/justestif/qry@latest
+
+        <div id="tab-install-npm" class="tab-panel active">
+          <div class="terminal" style="border-radius: 0;">
+            <button class="copy-btn" data-copy="npm install -g @justestif/qry">copy</button>
+            <pre><span class="prompt">$</span> <span class="cmd">npm install -g</span> @justestif/qry</pre>
+          </div>
+        </div>
+
+        <div id="tab-install-mise" class="tab-panel">
+          <div class="terminal" style="border-radius: 0;">
+            <button class="copy-btn" data-copy="mise use -g go:github.com/justestif/qry@latest&#10;mise reshim">copy</button>
+            <pre><span class="prompt">$</span> <span class="cmd">mise use -g</span> go:github.com/justestif/qry@latest
 <span class="prompt">$</span> <span class="cmd">mise reshim</span></pre>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -392,15 +403,26 @@
 
       <p style="margin-block-start: 1.5rem;">Install an adapter the same way:</p>
 
-      <div class="terminal">
-        <div class="terminal-bar">
-          <span class="dot-red"></span>
-          <span class="dot-yellow"></span>
-          <span class="dot-green"></span>
+      <div class="tab-group">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="tab-adapter-npm">npm</button>
+          <button class="tab-btn" data-tab="tab-adapter-mise">mise</button>
         </div>
-        <button class="copy-btn" data-copy="mise use -g go:github.com/justestif/qry/adapters/ddg-scrape@latest&#10;mise reshim">copy</button>
-        <pre><span class="prompt">$</span> <span class="cmd">mise use -g</span> go:github.com/justestif/qry/adapters/ddg-scrape@latest
+
+        <div id="tab-adapter-npm" class="tab-panel active">
+          <div class="terminal" style="border-radius: 0;">
+            <button class="copy-btn" data-copy="npm install -g @justestif/qry-adapter-ddg-scrape">copy</button>
+            <pre><span class="prompt">$</span> <span class="cmd">npm install -g</span> @justestif/qry-adapter-ddg-scrape</pre>
+          </div>
+        </div>
+
+        <div id="tab-adapter-mise" class="tab-panel">
+          <div class="terminal" style="border-radius: 0;">
+            <button class="copy-btn" data-copy="mise use -g go:github.com/justestif/qry/adapters/ddg-scrape@latest&#10;mise reshim">copy</button>
+            <pre><span class="prompt">$</span> <span class="cmd">mise use -g</span> go:github.com/justestif/qry/adapters/ddg-scrape@latest
 <span class="prompt">$</span> <span class="cmd">mise reshim</span></pre>
+          </div>
+        </div>
       </div>
 
       <div class="info box" style="margin-block-start: 1.5rem;">
