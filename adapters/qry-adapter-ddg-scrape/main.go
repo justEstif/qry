@@ -1,5 +1,12 @@
 // qry-adapter-ddg-scrape searches via DuckDuckGo Lite.
-// No API key required. Technique sourced from charmbracelet/crush.
+// No API key required.
+//
+// The DuckDuckGo Lite scraping technique — including the lite.duckduckgo.com
+// endpoint, randomized User-Agent pool, Accept-Encoding: identity header, and
+// rate-limit delay — is derived from charmbracelet/crush
+// (https://github.com/charmbracelet/crush), used under the
+// Functional Source License 1.1 (FSL-1.1-MIT).
+// Copyright 2025-2026 Charmbracelet, Inc.
 //
 // Optional config:
 //   region  — DDG region code e.g. "us-en" (default: unset)

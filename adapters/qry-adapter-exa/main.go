@@ -1,5 +1,10 @@
 // qry-adapter-exa searches via Exa AI's public MCP endpoint.
-// No API key required. Discovered via opencode's websearch tool.
+// No API key required.
+//
+// The Exa MCP endpoint (https://mcp.exa.ai/mcp) and JSON-RPC protocol were
+// discovered by reading anomalyco/opencode's websearch tool
+// (https://github.com/anomalyco/opencode), which is MIT licensed.
+// This adapter is an independent implementation.
 //
 // Optional config:
 //   type                — "auto" (default) | "fast" | "deep"
