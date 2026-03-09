@@ -265,6 +265,11 @@
       color: var(--ok-fg, #276749);
     }
 
+    .badge-optional {
+      background: color-mix(in srgb, var(--warn-bg, #fefcbf) 60%, transparent);
+      color: var(--warn-fg, #975a16);
+    }
+
     /* ── Section headings ── */
     h2.section-title {
       font-family: var(--mono-font);
@@ -396,6 +401,26 @@
           <tr>
             <td><code>qry-adapter-exa</code></td>
             <td>Exa AI (via MCP)</td>
+            <td><span class="badge badge-none">None</span></td>
+          </tr>
+          <tr>
+            <td><code>qry-adapter-github</code></td>
+            <td>GitHub Search API</td>
+            <td><span class="badge badge-optional">Optional</span></td>
+          </tr>
+          <tr>
+            <td><code>qry-adapter-searx</code></td>
+            <td>SearXNG (self-hostable)</td>
+            <td><span class="badge badge-none">None</span></td>
+          </tr>
+          <tr>
+            <td><code>qry-adapter-stackoverflow</code></td>
+            <td>Stack Exchange API</td>
+            <td><span class="badge badge-optional">Optional</span></td>
+          </tr>
+          <tr>
+            <td><code>qry-adapter-wikipedia</code></td>
+            <td>Wikipedia / MediaWiki API</td>
             <td><span class="badge badge-none">None</span></td>
           </tr>
         </tbody>

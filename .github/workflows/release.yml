@@ -145,7 +145,7 @@ jobs:
         run: |
           TAG=${{ github.ref_name }}
           VERSION=${TAG#v}
-          BINARIES=(qry qry-adapter-brave-api qry-adapter-brave-scrape qry-adapter-ddg-scrape qry-adapter-exa)
+          BINARIES=(qry qry-adapter-brave-api qry-adapter-brave-scrape qry-adapter-ddg-scrape qry-adapter-exa qry-adapter-github qry-adapter-searx qry-adapter-stackoverflow qry-adapter-wikipedia)
 
           for bin in "${BINARIES[@]}"; do
             tmp=$(mktemp)

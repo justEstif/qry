@@ -1,9 +1,9 @@
 {
-  "name": "@justestif/qry-adapter-brave-api",
+  "name": "@justestif/qry-adapter-searx",
   "version": "4.5.0",
-  "description": "Brave Search API adapter for qry",
+  "description": "SearXNG search adapter for qry",
   "bin": {
-    "qry-adapter-brave-api": "bin.js"
+    "qry-adapter-searx": "bin.js"
   },
   "scripts": {
     "postinstall": "node install.js"

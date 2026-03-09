@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/justestif/qry/internal/config"
@@ -16,6 +17,7 @@ import (
 )
 
 var cfgFile string
+var sites []string
 
 func Execute(version string) {
 	rootCmd := &cobra.Command{
@@ -52,6 +54,14 @@ Adapters are external executables registered in ~/.config/qry/config.toml.`,
 				return fmt.Errorf("requires a query argument — run 'qry --agent-info' for usage")
 			}
 			query := args[0]
+
+			if len(sites) > 0 {
+				parts := make([]string, len(sites))
+				for i, s := range sites {
+					parts[i] = "site:" + s
+				}
+				query = strings.Join(parts, " OR ") + " " + query
+			}
 
 			if v := viper.GetString("mode"); v != "" {
 				cfg.Routing.Mode = v
@@ -106,6 +116,7 @@ Adapters are external executables registered in ~/.config/qry/config.toml.`,
 	rootCmd.Flags().String("mode", "", "routing mode: first or merge (overrides config)")
 	rootCmd.Flags().Int("num", 0, "number of results to return (overrides config)")
 	rootCmd.Flags().String("timeout", "", "per-adapter timeout e.g. 5s (overrides config)")
+	rootCmd.Flags().StringArrayVar(&sites, "site", nil, "restrict results to domain(s), repeatable (e.g. --site docs.rs --site crates.io)")
 
 	viper.BindPFlag("adapter", rootCmd.Flags().Lookup("adapter"))
 	viper.BindPFlag("mode", rootCmd.Flags().Lookup("mode"))

@@ -102,6 +102,10 @@ func Build(
 					Description: "Path to an alternate config file.",
 					Default:     "~/.config/qry/config.toml",
 				},
+				"--site": {
+					Description: "Restrict results to a domain. Repeatable. Prepends \"site:<domain>\" (joined with OR) to the query. Example: --site docs.rs --site crates.io",
+					Default:     "",
+				},
 				"--agent-info": {
 					Description: "Print this agent-info JSON and exit. No query required.",
 					Default:     "",

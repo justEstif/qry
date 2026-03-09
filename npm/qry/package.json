@@ -1,6 +1,6 @@
 {
   "name": "@justestif/qry",
-  "version": "0.4.2",
+  "version": "4.5.0",
   "description": "Terminal-native agent-first web search CLI",
   "bin": {
     "qry": "bin.js"

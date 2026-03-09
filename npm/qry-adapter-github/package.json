@@ -1,9 +1,9 @@
 {
-  "name": "@justestif/qry-adapter-brave-api",
+  "name": "@justestif/qry-adapter-github",
   "version": "4.5.0",
-  "description": "Brave Search API adapter for qry",
+  "description": "GitHub search adapter for qry",
   "bin": {
-    "qry-adapter-brave-api": "bin.js"
+    "qry-adapter-github": "bin.js"
   },
   "scripts": {
     "postinstall": "node install.js"

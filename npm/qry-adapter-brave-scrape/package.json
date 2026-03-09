@@ -1,6 +1,6 @@
 {
   "name": "@justestif/qry-adapter-brave-scrape",
-  "version": "0.4.2",
+  "version": "4.5.0",
   "description": "Brave Search scraping adapter for qry",
   "bin": {
     "qry-adapter-brave-scrape": "bin.js"

@@ -1,9 +1,9 @@
 {
-  "name": "@justestif/qry-adapter-brave-api",
+  "name": "@justestif/qry-adapter-stackoverflow",
   "version": "4.5.0",
-  "description": "Brave Search API adapter for qry",
+  "description": "Stack Overflow search adapter for qry",
   "bin": {
-    "qry-adapter-brave-api": "bin.js"
+    "qry-adapter-stackoverflow": "bin.js"
   },
   "scripts": {
     "postinstall": "node install.js"
