@@ -145,6 +145,13 @@ jobs:
         run: |
           TAG=${{ github.ref_name }}
           VERSION=${TAG#v}
+
+          # Sanity check: version must look like a valid semver starting with 0.x
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "ERROR: Version '$VERSION' is not valid semver"
+            exit 1
+          fi
+
           BINARIES=(qry qry-adapter-brave-api qry-adapter-brave-scrape qry-adapter-ddg-scrape qry-adapter-exa qry-adapter-github qry-adapter-searx qry-adapter-stackoverflow qry-adapter-wikipedia)
 
           for bin in "${BINARIES[@]}"; do
@@ -154,6 +161,6 @@ jobs:
 
             echo "Publishing @justestif/${bin}@${VERSION}..."
             cd "npm/${bin}"
-            npm publish --access public --provenance
+            npm publish --access public --provenance --tag latest
             cd - > /dev/null
           done
