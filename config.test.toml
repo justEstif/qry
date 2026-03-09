@@ -1,0 +1,17 @@
+# Test config — uses the mock adapter for end-to-end pipeline validation.
+# Run with: mise run test-e2e
+
+[defaults]
+  num     = 5
+  timeout = "5s"
+
+[routing]
+  mode     = "merge"
+  pool     = ["mock-a", "mock-b"]
+  fallback = []
+
+[adapters.mock-a]
+  bin = "./bin/qry-adapter-mock"
+
+[adapters.mock-b]
+  bin = "./bin/qry-adapter-mock"
