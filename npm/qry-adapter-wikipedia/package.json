@@ -1,6 +1,6 @@
 {
   "name": "@justestif/qry-adapter-wikipedia",
-  "version": "4.5.0",
+  "version": "0.0.0",
   "description": "Wikipedia search adapter for qry",
   "bin": {
     "qry-adapter-wikipedia": "bin.js"

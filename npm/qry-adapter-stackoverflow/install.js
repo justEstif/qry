@@ -40,23 +40,25 @@ fs.mkdirSync(binDir, { recursive: true });
 
 console.log(`Downloading ${BINARY} from ${url}...`);
 
+function tryUnlink(p) { try { fs.unlinkSync(p); } catch {} }
+
 function download(url, dest, cb) {
   const file = fs.createWriteStream(dest);
   https.get(url, (res) => {
     if (res.statusCode === 301 || res.statusCode === 302) {
       file.close();
-      fs.unlinkSync(dest);
+      tryUnlink(dest);
       return download(res.headers.location, dest, cb);
     }
     if (res.statusCode !== 200) {
       file.close();
-      fs.unlinkSync(dest);
+      tryUnlink(dest);
       return cb(new Error(`HTTP ${res.statusCode} for ${url}`));
     }
     res.pipe(file);
     file.on("finish", () => file.close(cb));
   }).on("error", (err) => {
-    fs.unlinkSync(dest);
+    tryUnlink(dest);
     cb(err);
   });
 }
@@ -71,7 +73,7 @@ download(url, tmpFile, (err) => {
     if (plat.ext === ".zip") {
       execFileSync("unzip", ["-j", tmpFile, exe, "-d", binDir]);
     } else {
-      execFileSync("tar", ["-xzf", tmpFile, "--strip-components=0", "-C", binDir, exe]);
+      execFileSync("tar", ["-xzf", tmpFile, "--strip-components=0", "-C", binDir]);
     }
     fs.chmodSync(outPath, 0o755);
     fs.unlinkSync(tmpFile);

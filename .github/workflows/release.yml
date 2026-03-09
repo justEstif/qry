@@ -69,7 +69,7 @@ jobs:
               continue
             fi
             go build -ldflags="-s -w" \
-              -o "${OUTDIR}/qry-adapter-${name}${EXT}" "./${adapter}"
+              -o "${OUTDIR}/${name}${EXT}" "./${adapter}"
           done
 
       - name: Create archives

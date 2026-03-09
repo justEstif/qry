@@ -1,6 +1,6 @@
 {
   "name": "@justestif/qry-adapter-ddg-scrape",
-  "version": "4.5.0",
+  "version": "0.0.0",
   "description": "DuckDuckGo scraping adapter for qry",
   "bin": {
     "qry-adapter-ddg-scrape": "bin.js"

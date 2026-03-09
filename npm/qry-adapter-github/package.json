@@ -1,6 +1,6 @@
 {
   "name": "@justestif/qry-adapter-github",
-  "version": "4.5.0",
+  "version": "0.0.0",
   "description": "GitHub search adapter for qry",
   "bin": {
     "qry-adapter-github": "bin.js"

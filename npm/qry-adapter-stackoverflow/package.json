@@ -1,6 +1,6 @@
 {
   "name": "@justestif/qry-adapter-stackoverflow",
-  "version": "4.5.0",
+  "version": "0.0.0",
   "description": "Stack Overflow search adapter for qry",
   "bin": {
     "qry-adapter-stackoverflow": "bin.js"
