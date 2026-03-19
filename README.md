@@ -29,6 +29,7 @@ npm install -g @justestif/qry
 **mise:**
 
 ```bash
+mise cache clear
 mise use -g go:github.com/justestif/qry@latest
 mise reshim
 ```
@@ -57,7 +58,7 @@ npm install -g @justestif/qry-adapter-ddg-scrape
 **mise:**
 
 ```bash
-mise use -g go:github.com/justestif/qry/adapters/ddg-scrape@latest
+mise use -g go:github.com/justestif/qry/adapters/qry-adapter-ddg-scrape@latest
 mise reshim
 ```
 
