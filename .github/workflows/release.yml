@@ -3,154 +3,58 @@ name: Release
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 permissions:
   contents: write
-  id-token: write
+  id-token: write  # required for npm OIDC trusted publishing (no NPM_TOKEN secret needed)
 
 jobs:
-  release:
-    name: Build and release
+  goreleaser:
+    name: GoReleaser
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-          - goos: linux
-            goarch: arm64
-          - goos: darwin
-            goarch: amd64
-          - goos: darwin
-            goarch: arm64
-          - goos: windows
-            goarch: amd64
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: true
 
-      - name: Set binary suffix
-        id: suffix
-        run: |
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            echo "ext=.exe" >> "$GITHUB_OUTPUT"
-          else
-            echo "ext=" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Build binaries
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
         env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: "0"
-        run: |
-          TAG=${{ github.ref_name }}
-          OS=${{ matrix.goos }}
-          ARCH=${{ matrix.goarch }}
-          EXT=${{ steps.suffix.outputs.ext }}
-          OUTDIR=dist/${OS}_${ARCH}
-          mkdir -p "$OUTDIR"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
 
-          go build -ldflags="-s -w -X main.version=${TAG}" \
-            -o "${OUTDIR}/qry${EXT}" .
-
-      - name: Create archives
-        run: |
-          OS=${{ matrix.goos }}
-          ARCH=${{ matrix.goarch }}
-          TAG=${{ github.ref_name }}
-          OUTDIR=dist/${OS}_${ARCH}
-          ARCHIVE_NAME="qry_${TAG}_${OS}_${ARCH}"
-
-          if [ "$OS" = "windows" ]; then
-            cd "$OUTDIR" && zip "../../${ARCHIVE_NAME}.zip" ./* && cd -
-          else
-            tar -czf "${ARCHIVE_NAME}.tar.gz" -C "$OUTDIR" .
-          fi
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: qry_${{ github.ref_name }}_${{ matrix.goos }}_${{ matrix.goarch }}
-          path: |
-            *.tar.gz
-            *.zip
-          retention-days: 1
-
-  publish:
-    name: Publish release
-    needs: release
+  npm-publish:
+    name: Publish to npm
     runs-on: ubuntu-latest
+    needs: goreleaser  # binaries must exist on GitHub Releases before postinstall.js can download them
 
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          merge-multiple: true
-          path: dist/
+      - uses: actions/checkout@v4
 
-      - name: Generate checksums
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Set package version from tag
         run: |
-          cd dist/
-          sha256sum * > checksums.txt
-          cat checksums.txt
+          VERSION=${GITHUB_REF_NAME#v}   # strip leading 'v' from tag
+          npm version "$VERSION" --no-git-tag-version
+        working-directory: npm/qry
 
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/*.tar.gz
-            dist/*.zip
-            dist/checksums.txt
-          generate_release_notes: true
-          fail_on_unmatched_files: true
-
-  publish-npm:
-    name: Publish npm packages
-    needs: publish
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Upgrade npm
-        run: npm install -g npm@latest
-
-      - name: Stamp versions and publish
-        run: |
-          TAG=${{ github.ref_name }}
-          VERSION=${TAG#v}
-
-          # Sanity check: version must look like a valid semver starting with 0.x
-          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "ERROR: Version '$VERSION' is not valid semver"
-            exit 1
-          fi
-
-          BINARIES=(qry)
-
-          for bin in "${BINARIES[@]}"; do
-            tmp=$(mktemp)
-            jq --arg v "$VERSION" '.version = $v' "npm/${bin}/package.json" > "$tmp"
-            mv "$tmp" "npm/${bin}/package.json"
-
-            echo "Publishing @justestif/${bin}@${VERSION}..."
-            cd "npm/${bin}"
-            npm publish --access public --provenance --tag latest
-            cd - > /dev/null
-          done
+      - name: Publish @justestif/qry
+        # Uses npm OIDC trusted publishing — no NPM_TOKEN secret required.
+        # Prerequisite: configure GitHub Actions as a trusted publisher for
+        # @justestif/qry on npmjs.com (Package Settings → Publishing → OIDC).
+        run: npm publish --access public --provenance
+        working-directory: npm/qry
