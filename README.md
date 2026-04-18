@@ -67,12 +67,8 @@ at runtime so secrets never live in the file:
   timeout = "5s"
 
 [routing]
-  mode     = "first"
-  pool     = ["ddg-scrape", "brave-scrape"]
-
-[adapters.ddg-scrape.config]
-
-[adapters.brave-scrape.config]
+  mode = "first"
+  pool = ["ddg-scrape", "brave-scrape"]
 ```
 
 ## Agent usage

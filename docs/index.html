@@ -456,9 +456,8 @@
           <pre><code>[routing]
   # "first"  — try adapters in order, stop at first success
   # "merge"  — query all concurrently, deduplicate by URL
-  mode     = "first"
-  pool     = ["brave-api", "ddg-scrape"]
-  fallback = ["brave-scrape"]  # used only in "first" mode</code></pre>
+  mode = "first"
+  pool = ["brave-api", "ddg-scrape", "brave-scrape"]</code></pre>
         </div>
 
         <div id="tab-adapters" class="tab-panel">
