@@ -20,7 +20,13 @@ qry "what is the latest version of numpy"
 
 ## Install
 
-**npm (recommended):**
+**Homebrew:**
+
+```bash
+brew install justEstif/tap/qry
+```
+
+**npm (alternative):**
 
 ```bash
 npm install -g @justestif/qry

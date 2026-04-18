@@ -348,11 +348,19 @@
 
       <div class="tab-group">
         <div class="tab-buttons">
-          <button class="tab-btn active" data-tab="tab-install-npm">npm</button>
+          <button class="tab-btn active" data-tab="tab-install-brew">brew</button>
+          <button class="tab-btn" data-tab="tab-install-npm">npm</button>
           <button class="tab-btn" data-tab="tab-install-mise">mise</button>
         </div>
 
-        <div id="tab-install-npm" class="tab-panel active">
+        <div id="tab-install-brew" class="tab-panel active">
+          <div class="terminal" style="border-radius: 0;">
+            <button class="copy-btn" data-copy="brew install justEstif/tap/qry">copy</button>
+            <pre><span class="prompt">$</span> <span class="cmd">brew install</span> justEstif/tap/qry</pre>
+          </div>
+        </div>
+
+        <div id="tab-install-npm" class="tab-panel">
           <div class="terminal" style="border-radius: 0;">
             <button class="copy-btn" data-copy="npm install -g @justestif/qry">copy</button>
             <pre><span class="prompt">$</span> <span class="cmd">npm install -g</span> @justestif/qry</pre>
