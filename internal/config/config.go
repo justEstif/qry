@@ -8,7 +8,7 @@ import (
 	"github.com/justestif/qry/internal/adapter"
 )
 
-// Adapter holds the registration and settings for a single adapter binary.
+// Adapter holds the registration and settings for a single adapter.
 type Adapter struct {
 	Timeout time.Duration     `mapstructure:"timeout"`
 	Num     int               `mapstructure:"num"`
@@ -35,8 +35,8 @@ type Config struct {
 }
 
 // ExpandEnv replaces ${VAR} references in adapter config map values with their
-// environment variable values. Only the [adapters.<name>.config] map is expanded —
-// binary paths and timeouts are not touched. Call this after unmarshalling.
+// environment variable values. Only the [adapters.<name>.config] map is expanded.
+// Call this after unmarshalling.
 func (c *Config) ExpandEnv() {
 	for name, adapter := range c.Adapters {
 		if adapter.Config == nil {

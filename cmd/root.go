@@ -24,8 +24,8 @@ func Execute(version string) {
 		Use:     "qry <query>",
 		Short:   "A terminal-native, agent-first web search hub",
 		Version: version,
-		Long: `qry routes search queries through pluggable adapter binaries.
-Adapters are external executables registered in ~/.config/qry/config.toml.`,
+		Long: `qry routes search queries through built-in adapters.
+Available adapters can be managed in ~/.config/qry/config.toml.`,
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			agentInfo, _ := cmd.Flags().GetBool("agent-info")

@@ -77,7 +77,7 @@ func Build(
 			Name:    "qry",
 			Version: version,
 			Description: "A terminal-native, agent-first web search hub. " +
-				"Routes queries through pluggable adapter binaries and always outputs JSON.",
+				"Routes queries through built-in adapters and always outputs JSON.",
 			Usage: "qry [flags] <query>",
 			Flags: map[string]Flag{
 				"--adapter": {
