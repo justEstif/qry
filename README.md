@@ -68,8 +68,7 @@ at runtime so secrets never live in the file:
 
 [routing]
   mode     = "first"
-  pool     = ["ddg-scrape"]
-  fallback = ["brave-scrape"]
+  pool     = ["ddg-scrape", "brave-scrape"]
 
 [adapters.ddg-scrape.config]
 

@@ -48,9 +48,8 @@ type DefaultsInfo struct {
 
 // RoutingInfo describes the current routing configuration.
 type RoutingInfo struct {
-	Mode     string   `json:"mode"`
-	Pool     []string `json:"pool"`
-	Fallback []string `json:"fallback"`
+	Mode string   `json:"mode"`
+	Pool []string `json:"pool"`
 }
 
 // AdapterInfo describes a single adapter entry.
@@ -112,8 +111,7 @@ func Build(
 			},
 		},
 		RoutingModes: map[string]string{
-			"first": "Tries pool adapters in order; returns on first success. " +
-				"Falls back to the fallback list if all pool adapters fail. Fast, good for most use cases.",
+			"first": "Tries pool adapters in order; returns on first success. Fast, good for most use cases.",
 			"merge": "Queries all pool adapters concurrently, deduplicates results by URL, " +
 				"and returns a combined set. Partial failure is non-fatal — results from " +
 				"successful adapters are returned alongside warnings.",
@@ -139,15 +137,16 @@ func buildConfigInfo(
 			Timeout: formatDuration(cfg.Defaults.Timeout),
 		},
 		Routing: RoutingInfo{
-			Mode:     cfg.Routing.Mode,
-			Pool:     cfg.Routing.Pool,
-			Fallback: cfg.Routing.Fallback,
+			Mode: cfg.Routing.Mode,
+			Pool: cfg.Routing.Pool,
 		},
 		Adapters: make(map[string]AdapterInfo, len(cfg.Adapters)),
 	}
 
-	for name, adapterCfg := range cfg.Adapters {
+	for name := range cfg.Adapters {
 		adp := adapter.Get(name)
+		adapterCfg := cfg.Adapters[name]
+		
 		adapterInfo := AdapterInfo{
 			Available: adp != nil,
 		}
@@ -162,6 +161,15 @@ func buildConfigInfo(
 			adapterInfo.Config = raw
 		}
 		ci.Adapters[name] = adapterInfo
+	}
+
+	// Also list adapters that are available in the registry but have no config block.
+	for _, name := range adapter.List() {
+		if _, ok := ci.Adapters[name]; !ok {
+			ci.Adapters[name] = AdapterInfo{
+				Available: true,
+			}
+		}
 	}
 
 	return ci

@@ -17,9 +17,8 @@ type Adapter struct {
 
 // Routing controls how qry selects and combines adapters.
 type Routing struct {
-	Mode     string   `mapstructure:"mode"`     // "first" or "merge"
-	Pool     []string `mapstructure:"pool"`     // adapters actively used for queries
-	Fallback []string `mapstructure:"fallback"` // "first" mode only
+	Mode string   `mapstructure:"mode"` // "first" or "merge"
+	Pool []string `mapstructure:"pool"` // adapters actively used for queries
 }
 
 // Defaults holds global fallback values applied when not set per-adapter.
@@ -74,7 +73,7 @@ func (c *Config) Validate() error {
 	if c.Routing.Mode != "first" && c.Routing.Mode != "merge" {
 		return fmt.Errorf("routing.mode must be \"first\" or \"merge\", got %q", c.Routing.Mode)
 	}
-	for _, name := range append(c.Routing.Pool, c.Routing.Fallback...) {
+	for _, name := range c.Routing.Pool {
 		if a := adapter.Get(name); a == nil {
 			return fmt.Errorf("adapter %q referenced in routing but not registered", name)
 		}
@@ -84,10 +83,15 @@ func (c *Config) Validate() error {
 
 // ResolvedAdapter returns the adapter config for the given name with defaults applied.
 func (c *Config) ResolvedAdapter(name string) (Adapter, error) {
-	a, ok := c.Adapters[name]
-	if !ok {
-		return Adapter{}, fmt.Errorf("adapter %q not found in config", name)
+	if adapter.Get(name) == nil {
+		return Adapter{}, fmt.Errorf("adapter %q not registered", name)
 	}
+
+	var a Adapter
+	if found, ok := c.Adapters[name]; ok {
+		a = found
+	}
+
 	if a.Timeout == 0 {
 		a.Timeout = c.Defaults.Timeout
 	}

@@ -33,10 +33,10 @@ func (r *Router) Run(ctx context.Context) (any, error) {
 	}
 }
 
-// runFirst tries pool adapters sequentially, then fallback adapters.
+// runFirst tries pool adapters sequentially.
 // Returns on first success.
 func (r *Router) runFirst(ctx context.Context) (result.FirstOutput, error) {
-	chain := append(r.cfg.Routing.Pool, r.cfg.Routing.Fallback...)
+	chain := r.cfg.Routing.Pool
 	attempts := make([]result.Attempt, 0, len(chain))
 
 	for _, name := range chain {

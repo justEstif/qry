@@ -68,7 +68,6 @@ Adapters are external executables registered in ~/.config/qry/config.toml.`,
 			}
 			if v := viper.GetString("adapter"); v != "" {
 				cfg.Routing.Pool = []string{v}
-				cfg.Routing.Fallback = nil
 			}
 			if v := viper.GetInt("num"); v != 0 {
 				cfg.Defaults.Num = v
