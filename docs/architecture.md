@@ -3,7 +3,7 @@
 ## Overview
 
 `qry` is a CLI search hub. It provides a stable interface for querying the web and delegates
-the actual searching to pluggable adapter binaries. The core knows nothing about search engines —
+the actual searching to pluggable adapters. The core knows nothing about search engines —
 it only knows how to load config, invoke adapters, route between them, and return results.
 
 ```mermaid
@@ -12,8 +12,8 @@ flowchart TD
     cli["CLI / flags"]
     config["config loader"]
     router["router"]
-    adapterA["qry-adapter-brave (external binary)"]
-    adapterB["qry-adapter-google (external binary)"]
+    adapterA["brave-api adapter"]
+    adapterB["google-api adapter"]
     output["JSON output"]
 
     caller -->|"qry 'query' [--flags]"| cli
@@ -58,7 +58,6 @@ Reads `~/.config/qry/config.toml` on every invocation. No daemon, no caching.
 Responsibilities:
 
 - Parse and validate the config file
-- Resolve adapter binary paths (verify they exist and are executable)
 - Merge flag overrides on top of config values
 - Expose a resolved `Config` struct to the router
 
@@ -79,11 +78,10 @@ Responsibilities:
 
 ### 4. Adapters
 
-External binaries. The router invokes them as subprocesses. See [adapters.md](./adapters.md)
+Built-in Go packages that implement the `Adapter` interface. The router invokes their `Search` method. See [adapters.md](./adapters.md)
 for the full contract.
 
-Adapters are completely decoupled from `qry` — they are installed separately, registered in
-config, and can be written in any language.
+Adapters are decoupled from `qry`'s core logic — they are registered in the router but handle their own specific search implementation.
 
 ---
 
@@ -91,20 +89,16 @@ config, and can be written in any language.
 
 ```mermaid
 flowchart TD
-    start(["invoke adapter"])
-    resolve["resolve binary path from config"]
-    spawn["start subprocess"]
-    write["write JSON request to stdin close stdin"]
-    race{"race: stdout/stderr vs timeout"}
-    timeout["kill process error: timeout"]
-    nonzero["read stderr parse error JSON"]
-    success["read stdout parse result JSON"]
+    start(["invoke adapter.Search()"])
+    exec["execute search logic"]
+    race{"race: search vs context timeout"}
+    timeout["return error: ctx.Err()"]
+    success["return []Result"]
     done(["return to router"])
 
-    start --> resolve --> spawn --> write --> race
-    race -->|"timeout hits"| timeout --> done
-    race -->|"exit non-zero"| nonzero --> done
-    race -->|"exit 0"| success --> done
+    start --> exec --> race
+    race -->|"context canceled"| timeout --> done
+    race -->|"success"| success --> done
 ```
 
 This is the same for both routing modes. The difference is in how the router uses the results.
@@ -186,8 +180,8 @@ sequenceDiagram
     caller->>cli: qry "query"
     cli->>config: load + merge flags
     config->>router: resolved Config
-    router->>adapter: stdin: {query, num, config}
-    adapter-->>router: stdout: [{title,url,snippet}]
+    router->>adapter: Search(ctx, query, num, config)
+    adapter-->>router: []Result
     router-->>caller: [{title,url,snippet}]
 ```
 
@@ -202,12 +196,12 @@ sequenceDiagram
 
     caller->>router: qry --mode merge "query"
     par concurrent invocation
-        router->>brave: stdin: {query, num, config}
+        router->>brave: Search(ctx, query, num, config)
     and
-        router->>google: stdin: {query, num, config}
+        router->>google: Search(ctx, query, num, config)
     end
-    brave-->>router: stdout: [{title,url,snippet}]
-    google-->>router: stderr: {error: rate_limited}
+    brave-->>router: []Result
+    google-->>router: error: rate_limited
     router-->>caller: {results:[...], warnings:["google-api: rate_limited"]}
 ```
 
@@ -241,9 +235,8 @@ qry/
 
 ## Key Design Decisions
 
-**Adapters are subprocesses, not plugins**
-Go does not support dynamic linking in a practical way. Subprocesses give us language-agnostic
-extensibility with a clean, testable boundary. The stdin/stdout protocol is the API surface.
+**Adapters are built-in Go packages**
+We've moved away from external binaries to built-in packages to simplify distribution and execution. They implement a common interface `Adapter`.
 
 **Config is read on every invocation**
 No daemon means no state to manage and no restart needed when config changes. The overhead of

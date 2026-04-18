@@ -2,7 +2,7 @@
 
 **[justestif.github.io/qry](https://justestif.github.io/qry/)**
 
-A terminal-native, agent-first web search CLI. Routes queries through swappable adapter binaries and always outputs JSON.
+A terminal-native, agent-first web search CLI. Routes queries through swappable built-in adapters and always outputs JSON.
 
 ```bash
 qry "what is the latest version of numpy"
@@ -36,31 +36,18 @@ mise reshim
 
 ## Adapters
 
-Adapters are separate binaries that do the actual searching. Install the ones you want:
+Adapters are built-in packages that do the actual searching. They implement a common interface.
 
 | Adapter                         | Source                          | Key required |
 | ------------------------------- | ------------------------------- | ------------ |
-| `qry-adapter-brave-api`         | Brave Search API                | ✓            |
-| `qry-adapter-brave-scrape`      | Brave Search (scraping)         | ✗            |
-| `qry-adapter-ddg-scrape`        | DuckDuckGo Lite (scraping)      | ✗            |
-| `qry-adapter-exa`               | Exa AI (via MCP)                | ✗            |
-| `qry-adapter-github`            | GitHub Search API               | ✗ (optional) |
-| `qry-adapter-searx`             | SearXNG (self-hostable)         | ✗            |
-| `qry-adapter-stackoverflow`     | Stack Exchange API              | ✗ (optional) |
-| `qry-adapter-wikipedia`         | Wikipedia / MediaWiki API       | ✗            |
-
-**npm:**
-
-```bash
-npm install -g @justestif/qry-adapter-ddg-scrape
-```
-
-**mise:**
-
-```bash
-mise use -g go:github.com/justestif/qry/adapters/qry-adapter-ddg-scrape@latest
-mise reshim
-```
+| `brave-api`                     | Brave Search API                | ✓            |
+| `brave-scrape`                  | Brave Search (scraping)         | ✗            |
+| `ddg-scrape`                    | DuckDuckGo Lite (scraping)      | ✗            |
+| `exa`                           | Exa AI (via MCP)                | ✗            |
+| `github`                        | GitHub Search API               | ✗ (optional) |
+| `searx`                         | SearXNG (self-hostable)         | ✗            |
+| `stackoverflow`                 | Stack Exchange API              | ✗ (optional) |
+| `wikipedia`                     | Wikipedia / MediaWiki API       | ✗            |
 
 ## Configure
 
@@ -84,11 +71,9 @@ at runtime so secrets never live in the file:
   pool     = ["ddg-scrape"]
   fallback = ["brave-scrape"]
 
-[adapters.ddg-scrape]
-  bin = "~/.local/share/mise/shims/qry-adapter-ddg-scrape"
+[adapters.ddg-scrape.config]
 
-[adapters.brave-scrape]
-  bin = "~/.local/share/mise/shims/qry-adapter-brave-scrape"
+[adapters.brave-scrape.config]
 ```
 
 ## Agent usage
@@ -111,7 +96,7 @@ qry --agent-info
 ```
 
 The output includes the tool description, available flags, routing mode explanations,
-and each configured adapter with its binary path and availability status. Adapter config
+and each configured adapter with its availability status. Adapter config
 maps show `${VAR}` template strings rather than resolved values, so secrets are never exposed.
 
 ## Routing modes

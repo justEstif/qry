@@ -314,7 +314,7 @@
     <!-- Hero -->
     <section class="hero">
       <h1>qry</h1>
-      <p class="tagline">A terminal-native, agent-first web search CLI.<br>Routes queries through swappable adapter binaries and always outputs JSON.</p>
+      <p class="tagline">A terminal-native, agent-first web search CLI.<br>Routes queries through swappable adapters and always outputs JSON.</p>
 
       <div class="terminal">
         <div class="terminal-bar">
@@ -372,7 +372,7 @@
     <!-- Adapters -->
     <section id="adapters">
       <h2 class="section-title">Adapters</h2>
-      <p class="section-sub">Adapters are separate binaries that do the actual searching. Install the ones you want.</p>
+      <p class="section-sub">Adapters are built-in search engines that do the actual searching.</p>
 
       <table>
         <thead>
@@ -426,30 +426,6 @@
         </tbody>
       </table>
 
-      <p style="margin-block-start: 1.5rem;">Install an adapter the same way:</p>
-
-      <div class="tab-group">
-        <div class="tab-buttons">
-          <button class="tab-btn active" data-tab="tab-adapter-npm">npm</button>
-          <button class="tab-btn" data-tab="tab-adapter-mise">mise</button>
-        </div>
-
-        <div id="tab-adapter-npm" class="tab-panel active">
-          <div class="terminal" style="border-radius: 0;">
-            <button class="copy-btn" data-copy="npm install -g @justestif/qry-adapter-ddg-scrape">copy</button>
-            <pre><span class="prompt">$</span> <span class="cmd">npm install -g</span> @justestif/qry-adapter-ddg-scrape</pre>
-          </div>
-        </div>
-
-        <div id="tab-adapter-mise" class="tab-panel">
-          <div class="terminal" style="border-radius: 0;">
-            <button class="copy-btn" data-copy="mise use -g go:github.com/justestif/qry/adapters/qry-adapter-ddg-scrape@latest&#10;mise reshim">copy</button>
-            <pre><span class="prompt">$</span> <span class="cmd">mise use -g</span> go:github.com/justestif/qry/adapters/qry-adapter-ddg-scrape@latest
-<span class="prompt">$</span> <span class="cmd">mise reshim</span></pre>
-          </div>
-        </div>
-      </div>
-
       <div class="info box" style="margin-block-start: 1.5rem;">
         Adapters are completely decoupled from <code>qry</code> — they can be written in any language
         and swapped without changing core. See
@@ -487,14 +463,12 @@
 
         <div id="tab-adapters" class="tab-panel">
           <pre><code>[adapters.brave-api]
-  bin     = "~/.local/share/mise/shims/qry-adapter-brave-api"
   timeout = "5s"
 
   [adapters.brave-api.config]
     api_key = "${BRAVE_API_KEY}"  # expanded from env at runtime
 
-[adapters.ddg-scrape]
-  bin = "~/.local/share/mise/shims/qry-adapter-ddg-scrape"</code></pre>
+[adapters.ddg-scrape]</code></pre>
         </div>
       </div>
 
@@ -541,7 +515,7 @@
         <pre><span class="prompt">$</span> <span class="cmd">qry --agent-info</span></pre>
       </div>
 
-      <p style="margin-block-start: 1.5rem;">The output includes the tool description, available flags, routing mode explanations, and each configured adapter with its binary path and availability status.</p>
+      <p style="margin-block-start: 1.5rem;">The output includes the tool description, available flags, routing mode explanations, and each configured adapter with its availability status.</p>
 
       <div class="info box">
         Adapter config maps show <code>${VAR}</code> template strings rather than resolved values,

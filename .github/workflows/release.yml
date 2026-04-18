@@ -62,16 +62,6 @@ jobs:
           go build -ldflags="-s -w -X main.version=${TAG}" \
             -o "${OUTDIR}/qry${EXT}" .
 
-          for adapter in adapters/*/; do
-            name=$(basename "$adapter")
-            # skip mock
-            if [ "$name" = "qry-adapter-mock" ]; then
-              continue
-            fi
-            go build -ldflags="-s -w" \
-              -o "${OUTDIR}/${name}${EXT}" "./${adapter}"
-          done
-
       - name: Create archives
         run: |
           OS=${{ matrix.goos }}
@@ -152,7 +142,7 @@ jobs:
             exit 1
           fi
 
-          BINARIES=(qry qry-adapter-brave-api qry-adapter-brave-scrape qry-adapter-ddg-scrape qry-adapter-exa qry-adapter-github qry-adapter-searx qry-adapter-stackoverflow qry-adapter-wikipedia)
+          BINARIES=(qry)
 
           for bin in "${BINARIES[@]}"; do
             tmp=$(mktemp)

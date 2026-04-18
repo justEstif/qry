@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/justestif/qry/internal/adapter"
 )
 
 // Adapter holds the registration and settings for a single adapter binary.
 type Adapter struct {
-	Bin     string            `mapstructure:"bin"`
 	Timeout time.Duration     `mapstructure:"timeout"`
 	Num     int               `mapstructure:"num"`
 	Config  map[string]string `mapstructure:"config"`
@@ -74,15 +75,8 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("routing.mode must be \"first\" or \"merge\", got %q", c.Routing.Mode)
 	}
 	for _, name := range append(c.Routing.Pool, c.Routing.Fallback...) {
-		adapter, ok := c.Adapters[name]
-		if !ok {
-			return fmt.Errorf("adapter %q referenced in routing but not declared in [adapters]", name)
-		}
-		if adapter.Bin == "" {
-			return fmt.Errorf("adapter %q is missing required field: bin", name)
-		}
-		if _, err := os.Stat(adapter.Bin); err != nil {
-			return fmt.Errorf("adapter %q binary not found at %q: %w", name, adapter.Bin, err)
+		if a := adapter.Get(name); a == nil {
+			return fmt.Errorf("adapter %q referenced in routing but not registered", name)
 		}
 	}
 	return nil

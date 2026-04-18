@@ -2,9 +2,9 @@
 package info
 
 import (
-	"os"
 	"time"
 
+	"github.com/justestif/qry/internal/adapter"
 	"github.com/justestif/qry/internal/config"
 )
 
@@ -55,7 +55,6 @@ type RoutingInfo struct {
 
 // AdapterInfo describes a single adapter entry.
 type AdapterInfo struct {
-	Bin       string            `json:"bin"`
 	Available bool              `json:"available"`
 	Timeout   string            `json:"timeout,omitempty"`
 	Num       int               `json:"num,omitempty"`
@@ -147,17 +146,16 @@ func buildConfigInfo(
 		Adapters: make(map[string]AdapterInfo, len(cfg.Adapters)),
 	}
 
-	for name, adapter := range cfg.Adapters {
-		_, err := os.Stat(adapter.Bin)
+	for name, adapterCfg := range cfg.Adapters {
+		adp := adapter.Get(name)
 		adapterInfo := AdapterInfo{
-			Bin:       adapter.Bin,
-			Available: err == nil,
+			Available: adp != nil,
 		}
-		if adapter.Timeout > 0 {
-			adapterInfo.Timeout = formatDuration(adapter.Timeout)
+		if adapterCfg.Timeout > 0 {
+			adapterInfo.Timeout = formatDuration(adapterCfg.Timeout)
 		}
-		if adapter.Num > 0 {
-			adapterInfo.Num = adapter.Num
+		if adapterCfg.Num > 0 {
+			adapterInfo.Num = adapterCfg.Num
 		}
 		// Use raw (unexpanded) config so ${VAR} templates are visible, not secrets.
 		if raw, ok := rawAdapterConfigs[name]; ok && len(raw) > 0 {
