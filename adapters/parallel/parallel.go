@@ -66,6 +66,29 @@ func (t *requestTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	return resp, err
 }
 
+// checkRedirect runs before the transport can attach credentials to a redirected
+// request. Keep MCP traffic on its original HTTPS origin, including for anonymous
+// sessions, and retain the standard client redirect limit.
+func checkRedirect(req *http.Request, via []*http.Request) error {
+	if len(via) >= 10 {
+		return errors.New("stopped after 10 redirects")
+	}
+	origin := via[0].URL
+	port := req.URL.Port()
+	if port == "" {
+		port = "443"
+	}
+	originPort := origin.Port()
+	if originPort == "" {
+		originPort = "443"
+	}
+	if req.URL.Scheme != "https" || origin.Scheme != "https" ||
+		!strings.EqualFold(req.URL.Hostname(), origin.Hostname()) || port != originPort || req.URL.User != nil {
+		return errors.New("Parallel MCP redirect outside the original HTTPS origin is not allowed")
+	}
+	return nil
+}
+
 type contextBody struct {
 	io.ReadCloser
 	finish func()
@@ -108,7 +131,7 @@ func (a *Adapter) Search(ctx context.Context, query string, num int, config map[
 	client := mcp.NewClient(&mcp.Implementation{Name: "qry", Version: "dev"}, nil)
 	session, err := client.Connect(ctx, &mcp.StreamableClientTransport{
 		Endpoint:             endpoint,
-		HTTPClient:           &http.Client{Transport: transport, Timeout: 30 * time.Second},
+		HTTPClient:           &http.Client{Transport: transport, Timeout: 30 * time.Second, CheckRedirect: checkRedirect},
 		DisableStandaloneSSE: true,
 		MaxRetries:           -1,
 	}, &mcp.ClientSessionOptions{ProtocolVersion: "2025-03-26"})

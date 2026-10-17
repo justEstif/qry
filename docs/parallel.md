@@ -36,6 +36,8 @@ api_key = "${PARALLEL_API_KEY}"
 
 The key is used only when configured in this block. The adapter bounds each search,
 including MCP initialization, to 30 seconds and respects cancellation from its
-caller. Service, protocol and tool failures return errors so qry can try the next
+caller. Redirects stay on the original HTTPS origin; cross-origin redirects and
+HTTPS-to-HTTP downgrades fail without contacting the redirect destination.
+Service, protocol and tool failures return errors so qry can try the next
 adapter in a `first` pool or report a warning in `merge` mode. Page fetching is
 outside qry's search-result interface.
