@@ -232,3 +232,69 @@ func TestEmptyQueryDoesNotConnect(t *testing.T) {
 		t.Fatalf("got %v", err)
 	}
 }
+
+// A session DELETE uses a detached context inside the SDK. Even a server that
+// stalls that cleanup must not hold a canceled or timed-out Search open.
+func TestStalledCleanupRespectsSearchContext(t *testing.T) {
+	for _, tc := range []struct {
+		name                    string
+		deadline, duringCleanup bool
+	}{
+		{"cancel during call", false, false},
+		{"deadline during call", true, false},
+		{"cancel during cleanup", false, true},
+		{"deadline during cleanup", true, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			want := context.Canceled
+			if tc.deadline {
+				ctx, cancel = context.WithTimeout(ctx, 50*time.Millisecond)
+				defer cancel()
+				want = context.DeadlineExceeded
+			}
+			base := http.DefaultTransport
+			http.DefaultTransport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+				if r.Method == http.MethodDelete {
+					if tc.duringCleanup && !tc.deadline {
+						cancel()
+					}
+					<-r.Context().Done()
+					return nil, r.Context().Err()
+				}
+				var req struct {
+					ID     any    `json:"id"`
+					Method string `json:"method"`
+				}
+				json.NewDecoder(r.Body).Decode(&req)
+				body, status := "", http.StatusAccepted
+				switch req.Method {
+				case "initialize":
+					status = http.StatusOK
+					body = fmt.Sprintf(`{"jsonrpc":"2.0","id":%v,"result":{"protocolVersion":"2025-03-26","capabilities":{"tools":{}},"serverInfo":{"name":"fixture","version":"1"}}}`, req.ID)
+				case "tools/call":
+					if tc.duringCleanup {
+						status = http.StatusOK
+						body = fmt.Sprintf(`{"jsonrpc":"2.0","id":%v,"result":{"content":[],"structuredContent":{"results":[]}}}`, req.ID)
+						break
+					}
+					if !tc.deadline {
+						cancel()
+					}
+					<-r.Context().Done()
+					return nil, r.Context().Err()
+				}
+				return &http.Response{StatusCode: status, Header: http.Header{"Content-Type": {"application/json"}, "Mcp-Session-Id": {"stalled-cleanup-session"}}, Body: io.NopCloser(strings.NewReader(body)), Request: r}, nil
+			})
+			defer func() { http.DefaultTransport = base }()
+			start := time.Now()
+			_, err := adapter.Get("parallel").Search(ctx, "numpy latest release", 1, nil)
+			// Results already received before cleanup can still be returned, but
+			// neither late cancellation nor a deadline may stall their delivery.
+			if (!tc.duringCleanup && !errors.Is(err, want)) || (tc.duringCleanup && err != nil) || time.Since(start) > time.Second {
+				t.Fatalf("Search returned %v after %s; want prompt %v", err, time.Since(start), want)
+			}
+		})
+	}
+}

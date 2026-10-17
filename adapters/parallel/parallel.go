@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"sync/atomic"
@@ -32,23 +33,48 @@ func (a *Adapter) Name() string { return "parallel" }
 // requestTransport adds project identification to every MCP request, including
 // initialization and session cleanup. Credentials are opt-in, never read from env.
 type requestTransport struct {
+	ctx    context.Context
 	base   http.RoundTripper
 	apiKey string
 	status atomic.Int32
 }
 
 func (t *requestTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req = req.Clone(req.Context())
+	// The SDK detaches its session context for background requests and cleanup.
+	// Keep every request and its response body within this search's lifetime.
+	ctx, cancel := context.WithCancel(req.Context())
+	stop := context.AfterFunc(t.ctx, cancel)
+	if t.ctx.Err() != nil {
+		cancel()
+	}
+	finish := func() { stop(); cancel() }
+	req = req.Clone(ctx)
 	req.Header.Set("User-Agent", userAgent)
 	if t.apiKey != "" {
 		req.Header.Set("Authorization", "Bearer "+t.apiKey)
 	}
 	resp, err := t.base.RoundTrip(req)
+	if err != nil {
+		finish()
+		return resp, err
+	}
+	resp.Body = &contextBody{ReadCloser: resp.Body, finish: finish}
 	// Successful cleanup/notification responses must not hide the failed call.
-	if resp != nil && resp.StatusCode >= 400 {
+	if req.Method == http.MethodPost && resp.StatusCode >= 400 {
 		t.status.Store(int32(resp.StatusCode))
 	}
 	return resp, err
+}
+
+type contextBody struct {
+	io.ReadCloser
+	finish func()
+}
+
+func (b *contextBody) Close() error {
+	err := b.ReadCloser.Close()
+	b.finish()
+	return err
 }
 
 func (t *requestTransport) failure(ctx context.Context, err error) error {
@@ -78,7 +104,7 @@ func (a *Adapter) Search(ctx context.Context, query string, num int, config map[
 	// Bound the whole operation as well as respecting any caller deadline.
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-	transport := &requestTransport{base: http.DefaultTransport, apiKey: config["api_key"]}
+	transport := &requestTransport{ctx: ctx, base: http.DefaultTransport, apiKey: config["api_key"]}
 	client := mcp.NewClient(&mcp.Implementation{Name: "qry", Version: "dev"}, nil)
 	session, err := client.Connect(ctx, &mcp.StreamableClientTransport{
 		Endpoint:             endpoint,
