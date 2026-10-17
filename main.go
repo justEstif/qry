@@ -10,6 +10,7 @@ import (
 	_ "github.com/justestif/qry/adapters/exa"
 	_ "github.com/justestif/qry/adapters/github"
 	_ "github.com/justestif/qry/adapters/mock"
+	_ "github.com/justestif/qry/adapters/parallel"
 	_ "github.com/justestif/qry/adapters/searx"
 	_ "github.com/justestif/qry/adapters/stackoverflow"
 	_ "github.com/justestif/qry/adapters/wikipedia"

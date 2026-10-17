@@ -51,9 +51,23 @@ Adapters are built-in packages that do the actual searching. They implement a co
 | `ddg-scrape`                    | DuckDuckGo Lite (scraping)      | ✗            |
 | `exa`                           | Exa AI (via MCP)                | ✗            |
 | `github`                        | GitHub Search API               | ✗ (optional) |
+| `parallel`                      | Parallel Search (via MCP)       | ✗            |
 | `searx`                         | SearXNG (self-hostable)         | ✗            |
 | `stackoverflow`                 | Stack Exchange API              | ✗ (optional) |
 | `wikipedia`                     | Wikipedia / MediaWiki API       | ✗            |
+
+### Parallel Search
+
+Use [Parallel Search MCP](https://docs.parallel.ai/integrations/mcp/search-mcp)
+for free web search without an account or API key:
+
+```bash
+qry --adapter parallel --num 5 "latest numpy release"
+```
+
+Search uses Fast mode. Results keep qry's `title`, `url`, and `snippet` JSON format.
+Parallel is opt-in; your routing pool stays unchanged. See
+[Parallel adapter setup](./docs/parallel.md) for configuration and limits.
 
 ## Configure
 
